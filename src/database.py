@@ -98,10 +98,11 @@ class DbTag:
         self.db_manager.execute_query(self.connection, query)
 
     def exists_tag(self, tag):
-        if self.get_tag(tag):
-            return True
-        else:
-            return False
+        return self.get_tag(tag)
+
+    def exists_path_tagged(self, tag, path):
+        query = "SELECT * FROM " + self.PATHS + " WHERE tag_name LIKE '" + tag + "' AND path LIKE '" + path + "';"
+        return self.execute_read_query(query)
 
 
 if __name__ == "__main__":
