@@ -97,8 +97,8 @@ class DbTag:
         query = "INSERT INTO " + self.TAGS + " VALUES ( '" + new_tag + "' );"
         self.db_manager.execute_query(self.connection, query)
 
-    def insert_path(self, tag_name, path):
-        query = "INSERT INTO " + self.PATHS + " (tag_name, path) VALUES ('" + tag_name + "', '" + path + "');"
+    def insert_path(self, tag, path):
+        query = "INSERT INTO " + self.PATHS + " (tag_name, path) VALUES ('" + tag + "', '" + path + "');"
         self.db_manager.execute_query(self.connection, query)
 
     def exists_tag(self, tag):
@@ -112,6 +112,9 @@ class DbTag:
         query = "DELETE FROM " + self.TAGS + " WHERE tag_name LIKE '" + tag + "';"
         self.db_manager.execute_query(self.connection, query)
 
+    def delete_path_tagged(self, tag, path):
+        query = "DELETE FROM " + self.PATHS + " WHERE tag_name LIKE '" + tag + "' AND path LIKE '" + path + "';"
+        self.db_manager.execute_query(self.connection, query)
 
 if __name__ == "__main__":
     db = DbTag()

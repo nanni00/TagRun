@@ -18,7 +18,6 @@ class UI(Frame):
 
         # get a tag list from db
         self.tags = self.db.get_tags()
-        print(self.tags)
 
         # the tag currently selected
         self.current_tag = None
@@ -109,10 +108,12 @@ class UI(Frame):
 
             path = None
             if file and not directory:
-                path = fd.askopenfile('r', title="Choose file", initialdir=os.path.expanduser("~"))
+                path = fd.askopenfile(title="Choose file", initialdir=os.path.expanduser("~")).name
+                # path.replace('//', '')
             elif not file and directory:
                 path = fd.askdirectory(title="Choose directory", initialdir=os.path.expanduser("~"))
 
+            print(path)
             if self.db.exists_path_tagged(tag_name, str(path)):
                 mbox.showerror(message="Path " + str(path) + " is already been tagged with " + tag_name + ".")
                 return
@@ -148,7 +149,11 @@ class UI(Frame):
             subprocess.call(('open', selected_path))
 
     def on_delete_tag(self):
-        tag_deleted = sd.askstring("Delete Tag", "Insert tag to destroy: ", parent=self)
+        if not self.db.get_tags():
+            mbox.showerror(message="No tag found.")
+            return
+
+        tag_deleted = sd.askstring("Delete Tag", "Insert tag to delete: ", parent=self)
         if not tag_deleted:
             return
         if not self.db.exists_tag(tag_deleted):
@@ -167,12 +172,24 @@ class UI(Frame):
 
     def on_delete_path(self):
         if not self.db.get_tags():
-            mbox.showerror(message="Path list is empty yet.")
+            mbox.showerror(message="No path found.")
             return
 
-        frame2 = tkinter.Frame()
-        frame2.place(self.root)
-        # todo finish listbox on destroy path
+        tag = sd.askstring("Delete Path", "Insert path's relative tag")
+        if tag:
+            if self.db.exists_tag(tag):
+                path_deleted = sd.askstring("Delete Path", "Insert path to delete")
+                if self.db.exists_path_tagged(tag, path_deleted):
+                    self.db.delete_path_tagged(tag, path_deleted)
+                    self.lbx_paths.delete(0, self.lbx_paths.size())
+                    if self.current_tag == tag:
+                        for path in self.db.get_paths_tagged(tag):
+                            self.lbx_paths.insert(END, path)
+                    return
+                mbox.showerror(message="Impossible find path " + path_deleted + " under tag " + tag + ".")
+                return
+            mbox.showerror(message="Impossible find tag " + tag + ".")
+            return
 
 
 def main():
