@@ -87,18 +87,14 @@ class DbTag:
 
     def get_tags(self):
         query = "SELECT * FROM " + self.TAGS
-        # print(query)
         return [tag[0] for tag in self.execute_read_query(query)]
 
     def get_paths_tagged(self, tag_name):
         query = "SELECT path FROM " + self.PATHS + " WHERE tag_name LIKE '" + tag_name + "';"
-        print(query)
-        print(self.execute_read_query(query))
         return [path for path in self.execute_read_query(query)]
 
     def insert_tag(self, new_tag):
         query = "INSERT INTO " + self.TAGS + " VALUES ( '" + new_tag + "' );"
-        # print(query)
         self.db_manager.execute_query(self.connection, query)
 
     def insert_path(self, tag_name, path):

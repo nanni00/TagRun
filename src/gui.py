@@ -1,4 +1,6 @@
 import os
+import platform
+import subprocess
 import tkinter
 from tkinter import Tk, Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
 from tkinter.ttk import Frame
@@ -37,36 +39,36 @@ class UI(Frame):
 
         self.rowconfigure(0, pad=3)
         self.rowconfigure(1, pad=5)
-        self.rowconfigure(3, weight=1)
-        self.rowconfigure(5, pad=7)
+        self.rowconfigure(2, weight=1)
 
         button_height = 2
         button_width = 9
+        buttons_row = 2
 
         add_tag_button = tkinter.Button(self, text="Add Tag", padx=2, pady=5, fg="white", bg="green",
                                         height=button_height, width=button_width,
                                         command=self.on_add_tag)
-        add_tag_button.grid(row=5, column=0)
+        add_tag_button.grid(row=buttons_row, column=0)
 
         add_file_path_button = tkinter.Button(self, text="Add File", padx=2, pady=5, fg="white", bg="green",
                                               height=button_height, width=button_width,
                                               command=self.on_add_file_path)
-        add_file_path_button.grid(row=5, column=1)
+        add_file_path_button.grid(row=buttons_row, column=1)
 
         add_directory_path_button = tkinter.Button(self, text="Add Directory", padx=2, pady=5, fg="white", bg="green",
                                                    height=button_height, width=button_width,
                                                    command=self.on_add_dir_path)
-        add_directory_path_button.grid(row=5, column=2)
+        add_directory_path_button.grid(row=buttons_row, column=2)
 
         delete_tag_button = tkinter.Button(self, text="Delete Tag", padx=2, pady=5, fg="white", bg="green",
                                            height=button_height, width=button_width,
                                            command=self.on_delete_tag)
-        delete_tag_button.grid(row=5, column=4)
+        delete_tag_button.grid(row=buttons_row, column=4)
 
         delete_path_button = tkinter.Button(self, text="Delete File\nor Directory", padx=2, pady=5, fg="white",
                                             bg="green", height=button_height, width=button_width,
                                             command=self.on_delete_path)
-        delete_path_button.grid(row=5, column=3)
+        delete_path_button.grid(row=buttons_row, column=3)
 
         lbx_tags = Listbox(self)
         for i in self.tags:
@@ -76,9 +78,9 @@ class UI(Frame):
         lbx_tags.grid(row=0, column=0, columnspan=5, padx=5)
         self.lbx_tags = lbx_tags
 
-        self.lbx_paths = Listbox(self)
-        self.lbx_paths.bind("<<ListboxSelect>>", self.on_select_path)
-        self.lbx_paths.grid(row=1, column=0, columnspan=5, ipadx=50)
+        self.lbx_paths = Listbox(self, width=50)
+        self.lbx_paths.bind("<Double-Button>", self.on_select_path)
+        self.lbx_paths.grid(row=1, column=0, columnspan=5)
 
     def on_add_tag(self):
         new_tag = sd.askstring("New Tag", "Insert a new tag: ", parent=self)
@@ -123,6 +125,8 @@ class UI(Frame):
     def on_select_tag(self, val):
         sender = val.widget
         idx = sender.curselection()
+        if not idx:
+            return
         self.current_tag = str(sender.get(idx))
         paths = self.db.get_paths_tagged(self.current_tag)
         self.lbx_paths.delete(0, self.lbx_paths.size())
@@ -130,8 +134,18 @@ class UI(Frame):
         for path in paths:
             self.lbx_paths.insert(END, path)
 
-    def on_select_path(self, val):
-        list_path = self.db.get_paths_tagged(self.current_tag)
+    @staticmethod
+    def on_select_path(val):
+        sender = val.widget
+        idx = sender.curselection()
+        selected_path = sender.get(idx)[0]
+        print(selected_path)
+        if platform.system() == 'Windows':
+            print("Windows!")
+            os.startfile(selected_path)
+        elif platform.system() == 'Darwin':
+            print('MacOs!')
+            subprocess.call(('open', selected_path))
 
     def on_delete_tag(self):
         tag_deleted = sd.askstring("Delete Tag", "Insert tag to destroy: ", parent=self)
@@ -163,7 +177,7 @@ class UI(Frame):
 
 def main():
     root = Tk()
-    root.geometry("400x500+300+200")
+    root.geometry("400x400+300+200")
 
     UI(root)
     root.mainloop()
