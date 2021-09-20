@@ -1,7 +1,7 @@
 import os
 import tkinter
-from tkinter import Tk, Listbox, END, StringVar, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
-from tkinter.ttk import Frame, Label
+from tkinter import Tk, Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
+from tkinter.ttk import Frame
 
 from src.database import DbTag
 
@@ -12,10 +12,14 @@ class UI(Frame):
         self.root = root
         self.db = DbTag()
 
-        self.var = StringVar()
+        # self.var = StringVar()
 
         # get a tag list from db
         self.tags = self.db.get_tags()
+        print(self.tags)
+
+        # the tag currently selected
+        self.current_tag = None
 
         self.init_ui()
 
@@ -36,33 +40,45 @@ class UI(Frame):
         self.rowconfigure(3, weight=1)
         self.rowconfigure(5, pad=7)
 
+        button_height = 2
+        button_width = 9
+
         add_tag_button = tkinter.Button(self, text="Add Tag", padx=2, pady=5, fg="white", bg="green",
+                                        height=button_height, width=button_width,
                                         command=self.on_add_tag)
         add_tag_button.grid(row=5, column=0)
 
         add_file_path_button = tkinter.Button(self, text="Add File", padx=2, pady=5, fg="white", bg="green",
+                                              height=button_height, width=button_width,
                                               command=self.on_add_file_path)
         add_file_path_button.grid(row=5, column=1)
 
         add_directory_path_button = tkinter.Button(self, text="Add Directory", padx=2, pady=5, fg="white", bg="green",
+                                                   height=button_height, width=button_width,
                                                    command=self.on_add_dir_path)
         add_directory_path_button.grid(row=5, column=2)
 
-        delete_path_button = tkinter.Button(self, text="Delete File\nor Directory", padx=2, pady=5, fg="white", bg="green",
-                                            command=self.on_destroy_path)
+        delete_tag_button = tkinter.Button(self, text="Delete Tag", padx=2, pady=5, fg="white", bg="green",
+                                           height=button_height, width=button_width,
+                                           command=self.on_delete_tag)
+        delete_tag_button.grid(row=5, column=4)
+
+        delete_path_button = tkinter.Button(self, text="Delete File\nor Directory", padx=2, pady=5, fg="white",
+                                            bg="green", height=button_height, width=button_width,
+                                            command=self.on_delete_path)
         delete_path_button.grid(row=5, column=3)
 
-        lbx = Listbox(self)
+        lbx_tags = Listbox(self)
         for i in self.tags:
-            lbx.insert(END, i)
+            lbx_tags.insert(END, i)
 
-        lbx.bind("<<ListboxSelect>>", self.on_select)
-        lbx.grid(row=1, column=1, rowspan=3, columnspan=4, padx=5)
-        self.lb = lbx
+        lbx_tags.bind("<<ListboxSelect>>", self.on_select_tag)
+        lbx_tags.grid(row=0, column=0, columnspan=5, padx=5)
+        self.lbx_tags = lbx_tags
 
-        self.var = StringVar()
-        self.lbl = Label(self, text="Tags", textvariable=self.var)
-        self.lbl.grid(row=1, column=0, columnspan=2)
+        self.lbx_paths = Listbox(self)
+        self.lbx_paths.bind("<<ListboxSelect>>", self.on_select_path)
+        self.lbx_paths.grid(row=1, column=0, columnspan=5, ipadx=50)
 
     def on_add_tag(self):
         new_tag = sd.askstring("New Tag", "Insert a new tag: ", parent=self)
@@ -73,7 +89,7 @@ class UI(Frame):
         else:
             self.tags.append(new_tag)
             self.db.insert_tag(new_tag)
-            self.lb.insert(END, new_tag)
+            self.lbx_tags.insert(END, new_tag)
 
     def on_add_file_path(self):
         self.add_path(file=True, directory=False)
@@ -99,29 +115,55 @@ class UI(Frame):
                 mbox.showerror(message="Path " + str(path) + " is already been tagged with " + tag_name + ".")
                 return
 
-            self.db.insert_path(tag_name, str(path))
+            if path:
+                self.db.insert_path(tag_name, str(path))
+                if self.current_tag == tag_name:
+                    self.lbx_paths.insert(END, path)
 
-    def on_select(self, val):
+    def on_select_tag(self, val):
         sender = val.widget
         idx = sender.curselection()
-        # print(sender.get(idx)[0])
-        paths = [j for i, j in self.db.get_paths_tagged(str(sender.get(idx)[0]))]
-        # print(paths)
-        self.var.set(paths)
+        self.current_tag = str(sender.get(idx))
+        paths = self.db.get_paths_tagged(self.current_tag)
+        self.lbx_paths.delete(0, self.lbx_paths.size())
 
-    def on_destroy_path(self):
+        for path in paths:
+            self.lbx_paths.insert(END, path)
+
+    def on_select_path(self, val):
+        list_path = self.db.get_paths_tagged(self.current_tag)
+
+    def on_delete_tag(self):
+        tag_deleted = sd.askstring("Delete Tag", "Insert tag to destroy: ", parent=self)
+        if not tag_deleted:
+            return
+        if not self.db.exists_tag(tag_deleted):
+            mbox.showerror(message="Impossible find tag: " + tag_deleted)
+        else:
+            self.db.delete_tag(tag_deleted)
+            self.tags.remove(tag_deleted)
+
+            self.lbx_tags.delete(0, self.lbx_paths.size())
+
+            for tag in self.tags:
+                self.lbx_tags.insert(END, tag)
+
+            if self.current_tag == tag_deleted:
+                self.lbx_paths.delete(0, self.lbx_paths.size())
+
+    def on_delete_path(self):
         if not self.db.get_tags():
             mbox.showerror(message="Path list is empty yet.")
             return
-        else:
-            frame2 = tkinter.Frame()
-            frame2.place(self.root)
-            # todo finish listbox on destroy path
+
+        frame2 = tkinter.Frame()
+        frame2.place(self.root)
+        # todo finish listbox on destroy path
 
 
 def main():
     root = Tk()
-    root.geometry("350x500+300+200")
+    root.geometry("400x500+300+200")
 
     UI(root)
     root.mainloop()

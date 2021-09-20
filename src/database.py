@@ -16,6 +16,11 @@ class DbManager:
     def create_connection(self, path):
         try:
             self.connection = sqlite3.connect(path)
+
+            # enable the foreign key constraints
+            self.connection.execute("PRAGMA foreign_keys = ON;")
+            # self.connection.cursor().execute("PRAGMA foreign_keys = ON;")
+
             # print("Connection to SQLite DB successful")
         except Error as e:
             print(f"The error '{e}' occurred")
@@ -56,6 +61,7 @@ class DbTag:
             path TEXT NOT NULL,
             PRIMARY KEY (tag_name, path),
             FOREIGN KEY (tag_name) REFERENCES tags (tag_name)
+            ON DELETE CASCADE
         );
         """
 
@@ -82,11 +88,13 @@ class DbTag:
     def get_tags(self):
         query = "SELECT * FROM " + self.TAGS
         # print(query)
-        return self.execute_read_query(query)
+        return [tag[0] for tag in self.execute_read_query(query)]
 
     def get_paths_tagged(self, tag_name):
-        query = "SELECT * FROM " + self.PATHS + " WHERE tag_name LIKE '" + tag_name + "';"
-        return self.execute_read_query(query)
+        query = "SELECT path FROM " + self.PATHS + " WHERE tag_name LIKE '" + tag_name + "';"
+        print(query)
+        print(self.execute_read_query(query))
+        return [path for path in self.execute_read_query(query)]
 
     def insert_tag(self, new_tag):
         query = "INSERT INTO " + self.TAGS + " VALUES ( '" + new_tag + "' );"
@@ -103,6 +111,10 @@ class DbTag:
     def exists_path_tagged(self, tag, path):
         query = "SELECT * FROM " + self.PATHS + " WHERE tag_name LIKE '" + tag + "' AND path LIKE '" + path + "';"
         return self.execute_read_query(query)
+
+    def delete_tag(self, tag):
+        query = "DELETE FROM " + self.TAGS + " WHERE tag_name LIKE '" + tag + "';"
+        self.db_manager.execute_query(self.connection, query)
 
 
 if __name__ == "__main__":
