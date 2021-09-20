@@ -10,9 +10,9 @@ class UI(Frame):
     def __init__(self, root):
         super().__init__(root)
         self.root = root
-        self.db = DbTag()
 
-        # self.var = StringVar()
+        # init the db
+        self.db = DbTag()
 
         # get a tag list from db
         self.tags = self.db.get_tags()
