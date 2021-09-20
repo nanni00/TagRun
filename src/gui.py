@@ -22,6 +22,10 @@ class UI(Frame):
         # the tag currently selected
         self.current_tag = None
 
+        # list boxes used in the gui
+        self.lbx_tags = None
+        self.lbx_paths = None
+
         self.init_ui()
 
     def init_ui(self):
@@ -191,7 +195,7 @@ class UI(Frame):
             mbox.showerror(message="Impossible find tag '" + tag + "'.")
             return
 
-    # todo use a global set to close the app in a safe state
+    # todo use a global variable to close the app (the db) in a safe state
     def on_closing(self):
         self.db.close_connection()
         self.root.destroy()
