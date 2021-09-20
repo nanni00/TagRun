@@ -19,7 +19,6 @@ class DbManager:
 
             # enable the foreign key constraints
             self.connection.execute("PRAGMA foreign_keys = ON;")
-            # self.connection.cursor().execute("PRAGMA foreign_keys = ON;")
 
             # print("Connection to SQLite DB successful")
         except Error as e:
@@ -115,6 +114,12 @@ class DbTag:
     def delete_path_tagged(self, tag, path):
         query = "DELETE FROM " + self.PATHS + " WHERE tag_name LIKE '" + tag + "' AND path LIKE '" + path + "';"
         self.db_manager.execute_query(self.connection, query)
+
+    def close_connection(self):
+        if self.connection:
+            self.db_manager.connection.close()
+            print("Connection closed.")
+
 
 if __name__ == "__main__":
     db = DbTag()

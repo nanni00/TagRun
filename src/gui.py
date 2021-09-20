@@ -175,10 +175,10 @@ class UI(Frame):
             mbox.showerror(message="No path found.")
             return
 
-        tag = sd.askstring("Delete Path", "Insert path's relative tag")
+        tag = sd.askstring("Delete Path", "Insert path's relative tag", parent=self)
         if tag:
             if self.db.exists_tag(tag):
-                path_deleted = sd.askstring("Delete Path", "Insert path to delete")
+                path_deleted = sd.askstring("Delete Path", "Insert path to delete", parent=self)
                 if self.db.exists_path_tagged(tag, path_deleted):
                     self.db.delete_path_tagged(tag, path_deleted)
                     self.lbx_paths.delete(0, self.lbx_paths.size())
@@ -186,17 +186,23 @@ class UI(Frame):
                         for path in self.db.get_paths_tagged(tag):
                             self.lbx_paths.insert(END, path)
                     return
-                mbox.showerror(message="Impossible find path " + path_deleted + " under tag " + tag + ".")
+                mbox.showerror(message="Impossible find path '" + path_deleted + "' under tag '" + tag + "'.")
                 return
-            mbox.showerror(message="Impossible find tag " + tag + ".")
+            mbox.showerror(message="Impossible find tag '" + tag + "'.")
             return
+
+    # todo use a global set to close the app in a safe state
+    def on_closing(self):
+        self.db.close_connection()
+        self.root.destroy()
 
 
 def main():
     root = Tk()
     root.geometry("400x400+300+200")
 
-    UI(root)
+    ui = UI(root)
+    root.protocol("WM_DELETE_WINDOW", ui.on_closing)
     root.mainloop()
 
 
