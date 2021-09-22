@@ -1,13 +1,15 @@
 import os
 import platform
+import random
 import subprocess
 import tkinter
 from tkinter import Tk, Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
 from tkinter.ttk import Frame
 
-from src.database import DbTag
+from database import DbTag
 
 
+# todo separate gui class and functions?
 class UI(Frame):
     def __init__(self, root):
         super().__init__(root)
@@ -25,6 +27,9 @@ class UI(Frame):
         # list boxes used in the gui
         self.lbx_tags = None
         self.lbx_paths = None
+
+        # dictionary used to store the current paths
+        self.dict_paths = None
 
         self.init_ui()
 
@@ -102,6 +107,7 @@ class UI(Frame):
     def on_add_dir_path(self):
         self.add_path(file=False, directory=True)
 
+    # todo handle paths dictionary on adding path to current tag
     def add_path(self, file, directory):
         if not self.db.get_tags():
             mbox.showerror(title="No Tags found", message="Add a tag before adding a path", parent=self)
@@ -117,7 +123,6 @@ class UI(Frame):
             elif not file and directory:
                 path = fd.askdirectory(title="Choose directory", initialdir=os.path.expanduser("~"))
 
-            print(path)
             if self.db.exists_path_tagged(tag_name, str(path)):
                 mbox.showerror(message="Path " + str(path) + " is already been tagged with " + tag_name + ".")
                 return
@@ -134,22 +139,21 @@ class UI(Frame):
             return
         self.current_tag = str(sender.get(idx))
         paths = self.db.get_paths_tagged(self.current_tag)
+        self.dict_paths = self.get_paths_lbx_dict(paths)
         self.lbx_paths.delete(0, self.lbx_paths.size())
 
-        for path in paths:
+        for path in self.dict_paths.keys():
             self.lbx_paths.insert(END, path)
 
-    @staticmethod
-    def on_select_path(val):
+    def on_select_path(self, val):
         sender = val.widget
         idx = sender.curselection()
-        selected_path = sender.get(idx)[0]
-        print(selected_path)
+        selected_path = self.dict_paths[sender.get(idx)][0]
         if platform.system() == 'Windows':
-            print("Windows!")
+            # print("Windows!")
             os.startfile(selected_path)
         elif platform.system() == 'Darwin':
-            print('MacOs!')
+            # print('MacOs!')
             subprocess.call(('open', selected_path))
 
     def on_delete_tag(self):
@@ -199,6 +203,23 @@ class UI(Frame):
     def on_closing(self):
         self.db.close_connection()
         self.root.destroy()
+
+    # todo improve relative paths building
+    def get_paths_lbx_dict(self, paths):
+        rel_paths = {}
+        for path in paths:
+            rel_path = path[0].split('/')
+            rel_path.reverse()
+            if not rel_paths.keys().__contains__(rel_path[0]):
+                rel_paths[rel_path[0]] = path
+            else:
+                old_rel_path =  rel_paths.get(rel_path[0])
+                old_rel_path = old_rel_path[0].split('/')
+                old_rel_path.reverse()
+                rel_paths[old_rel_path[1] + '/' + old_rel_path[0]] = rel_paths.pop(rel_path[0])
+                rel_paths[rel_path[1] + '/' + rel_path[0]] = path
+
+        return rel_paths
 
 
 def main():

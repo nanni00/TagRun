@@ -27,5 +27,7 @@ def key_add_path():
     root.mainloop()
 
 
+
+
 if __name__ == "__main__":
-    key_add_path()
+    main()
