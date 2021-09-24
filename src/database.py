@@ -7,7 +7,7 @@ from sqlite3 import Error
 
 
 class DbManager:
-    def __init__(self, path=os.getcwd() + "\\TagRun.sqlite"):
+    def __init__(self, path=os.getcwd() + "\\db.sqlite"):
         super().__init__()
 
         self.connection = None
@@ -15,7 +15,6 @@ class DbManager:
 
     def create_connection(self, path):
         try:
-            print(path)
             self.connection = sqlite3.connect(path)
 
             # enable the foreign key constraints
@@ -40,18 +39,19 @@ class DbManager:
                 # print("Query executed successfully")
             except Error as e:
                 print(f"The error '{e}' occurred")
+# class DbManager
 
 
-class DbTag:
-    def __init__(self):
+class DbManagerTag:
+    def __init__(self, path_dict):
         super().__init__()
 
         self.TAGS = "tags"
         self.PATHS = "paths"
 
-        self.root_dir = "C:\\Program Files\\TagRun"
-        self.db_dir = self.root_dir + "\\database"
-        self.tagrun_db = self.db_dir + "\\tagrun_db.sqlite"
+        self.root_dir = path_dict['root_dir']
+        self.db_dir = path_dict['db_dir']
+        self.db_file_sqlite = path_dict['db_file_sqlite']
 
         if not os.path.isdir(self.root_dir):
             os.mkdir(self.root_dir)
@@ -59,8 +59,8 @@ class DbTag:
         if not os.path.isdir(self.db_dir):
             os.mkdir(self.db_dir)
 
-        if not os.path.isfile(self.tagrun_db):
-            with open(self.tagrun_db, 'w') as f:
+        if not os.path.isfile(self.db_file_sqlite):
+            with open(self.db_file_sqlite, 'w') as f:
                 f.close()
 
         create_tags_table = """
@@ -79,8 +79,7 @@ class DbTag:
         );
         """
 
-        self.db_manager = DbManager(path=self.tagrun_db)
-        # self.db_manager = DbManager(path="C:\\Program Files\\TagRun\\database\\records.sqlite")
+        self.db_manager = DbManager(path=self.db_file_sqlite)
         self.connection = self.db_manager.get_connection()
 
         self.db_manager.execute_query(self.connection, query=create_tags_table)
@@ -97,7 +96,6 @@ class DbTag:
 
     def get_tag(self, tag):
         query = "SELECT * FROM " + self.TAGS + " WHERE tag_name LIKE '" + tag + "';"
-        # print(self.execute_read_query(query))
         return self.execute_read_query(query)
 
     def get_tags(self):
@@ -135,7 +133,40 @@ class DbTag:
         if self.connection:
             self.db_manager.connection.close()
             print("Connection closed.")
+# class DbManagerTag
 
 
-if __name__ == "__main__":
-    db = DbTag()
+class DbTag(DbManagerTag):
+    def __init__(self, path_dict):
+        super().__init__(path_dict)
+
+    def get_tag(self, tag):
+        return super(DbTag, self).get_tag(tag)
+
+    def get_tags(self):
+        return super(DbTag, self).get_tags()
+
+    def get_paths_tagged(self, tag_name):
+        return super(DbTag, self).get_paths_tagged(tag_name)
+
+    def exists_tag(self, tag):
+        return super(DbTag, self).exists_tag(tag)
+
+    def exists_path_tagged(self, tag, path):
+        return super(DbTag, self).exists_path_tagged(tag, path)
+
+    def insert_tag(self, tag):
+        super(DbTag, self).insert_tag(tag)
+
+    def insert_path(self, tag, path):
+        super(DbTag, self).insert_path(tag, path)
+
+    def delete_tag(self, tag):
+        super(DbTag, self).delete_tag(tag)
+
+    def delete_path_tagged(self, tag, path):
+        super(DbTag, self).delete_path_tagged(tag, path)
+
+    def close_connection(self):
+        super(DbTag, self).close_connection()
+# class DbTag

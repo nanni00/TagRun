@@ -2,22 +2,22 @@ import os
 import platform
 import subprocess
 import tkinter
-from tkinter import Tk, Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
+from tkinter import Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
 from tkinter.ttk import Frame
-
-from database import DbTag
 
 
 # todo separate gui class and functions?
-class UI(Frame):
-    def __init__(self, root):
-        super().__init__(root)
-        self.root = root
+class GUI(Frame):
+    def __init__(self, db):
+        super().__init__()
+        self.root = super()._root()
+        self.root.geometry("400x400+300+200")
 
-        # init the db
-        self.db = DbTag()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        # get a tag list from db
+        self.db = db
+
+        # get the tag list from db
         self.tags = self.db.get_tags()
 
         # the tag currently selected
@@ -31,6 +31,8 @@ class UI(Frame):
         self.dict_paths = None
 
         self.init_ui()
+
+        self.root.mainloop()
 
     def init_ui(self):
         """
@@ -94,7 +96,7 @@ class UI(Frame):
         if not new_tag:
             return
         elif self.db.exists_tag(new_tag):
-            mbox.showwarning(message="Tag " + new_tag + " already exists.")
+            mbox.showerror(message="Tag " + new_tag + " already exists.")
         else:
             self.tags.append(new_tag)
             self.db.insert_tag(new_tag)
@@ -115,6 +117,10 @@ class UI(Frame):
             if not tag_name:
                 return
 
+            if not self.db.exists_tag(tag_name):
+                mbox.showerror(message="Tag " + str(tag_name) + " doesn't exist.")
+                return
+
             path = None
             if file and not directory:
                 path = fd.askopenfile(title="Choose file", initialdir=os.path.expanduser("~")).name
@@ -123,7 +129,7 @@ class UI(Frame):
                 path = fd.askdirectory(title="Choose directory", initialdir=os.path.expanduser("~"))
 
             if self.db.exists_path_tagged(tag_name, str(path)):
-                mbox.showerror(message="Path " + str(path) + " is already been tagged with " + tag_name + ".")
+                mbox.showerror(message="Path " + str(path) + " has already been tagged with " + tag_name + ".")
                 return
 
             if path:
@@ -149,10 +155,8 @@ class UI(Frame):
         idx = sender.curselection()
         selected_path = self.dict_paths[sender.get(idx)][0]
         if platform.system() == 'Windows':
-            # print("Windows!")
             os.startfile(selected_path)
         elif platform.system() == 'Darwin':
-            # print('MacOs!')
             subprocess.call(('open', selected_path))
 
     def on_delete_tag(self):
@@ -167,8 +171,9 @@ class UI(Frame):
             mbox.showerror(message="Impossible find tag: " + tag_deleted)
         else:
             self.db.delete_tag(tag_deleted)
+            print(self.tags)
             self.tags.remove(tag_deleted)
-
+            print(self.tags)
             self.lbx_tags.delete(0, self.lbx_paths.size())
 
             for tag in self.tags:
@@ -212,23 +217,10 @@ class UI(Frame):
             if not rel_paths.keys().__contains__(rel_path[0]):
                 rel_paths[rel_path[0]] = path
             else:
-                old_rel_path =  rel_paths.get(rel_path[0])
+                old_rel_path = rel_paths.get(rel_path[0])
                 old_rel_path = old_rel_path[0].split('/')
                 old_rel_path.reverse()
                 rel_paths[old_rel_path[1] + '/' + old_rel_path[0]] = rel_paths.pop(rel_path[0])
                 rel_paths[rel_path[1] + '/' + rel_path[0]] = path
 
         return rel_paths
-
-
-def main():
-    root = Tk()
-    root.geometry("400x400+300+200")
-
-    ui = UI(root)
-    root.protocol("WM_DELETE_WINDOW", ui.on_closing)
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main()

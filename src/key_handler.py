@@ -1,9 +1,9 @@
-from database import DbTag
+from database import DbManagerTag
 from tkinter import Tk, Frame, simpledialog as sd, messagebox as mbox
 
 
 def key_add_path():
-    db = DbTag()
+    db = DbManagerTag()
     root = Tk()
     root.geometry("100x100+300+300")
     frame = Frame(root)
