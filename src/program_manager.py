@@ -2,8 +2,8 @@ import winreg as reg
 import os
 import platform
 import urllib.request
-from database import DbTag
-from gui import GUI
+from src.database import DbTag
+from src.gui import GUI
 
 
 class ProgramManager:
