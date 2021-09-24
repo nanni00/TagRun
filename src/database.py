@@ -1,6 +1,6 @@
+import os
 import sqlite3
 from sqlite3 import Error
-import os
 
 
 # todo replace raw sqlite with sqlalchemy
@@ -15,6 +15,7 @@ class DbManager:
 
     def create_connection(self, path):
         try:
+            print(path)
             self.connection = sqlite3.connect(path)
 
             # enable the foreign key constraints
@@ -48,6 +49,20 @@ class DbTag:
         self.TAGS = "tags"
         self.PATHS = "paths"
 
+        self.root_dir = "C:\\Program Files\\TagRun"
+        self.db_dir = self.root_dir + "\\database"
+        self.tagrun_db = self.db_dir + "\\tagrun_db.sqlite"
+
+        if not os.path.isdir(self.root_dir):
+            os.mkdir(self.root_dir)
+
+        if not os.path.isdir(self.db_dir):
+            os.mkdir(self.db_dir)
+
+        if not os.path.isfile(self.tagrun_db):
+            with open(self.tagrun_db, 'w') as f:
+                f.close()
+
         create_tags_table = """
         CREATE TABLE IF NOT EXISTS tags (
             tag_name TEXT PRIMARY KEY
@@ -64,7 +79,8 @@ class DbTag:
         );
         """
 
-        self.db_manager = DbManager(path="C:\\databases\\sqlite\\TagRun.sqlite")
+        self.db_manager = DbManager(path=self.tagrun_db)
+        # self.db_manager = DbManager(path="C:\\Program Files\\TagRun\\database\\records.sqlite")
         self.connection = self.db_manager.get_connection()
 
         self.db_manager.execute_query(self.connection, query=create_tags_table)

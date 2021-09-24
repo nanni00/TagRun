@@ -1,6 +1,5 @@
 import os
 import platform
-import random
 import subprocess
 import tkinter
 from tkinter import Tk, Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
