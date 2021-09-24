@@ -6,6 +6,10 @@ from tkinter.ttk import Frame
 
 
 # todo separate gui class and functions?
+from src.menubar import MenuBar
+from src.settings import Settings
+
+
 class GUI(Frame):
     def __init__(self, db):
         super().__init__()
@@ -31,6 +35,7 @@ class GUI(Frame):
 
         self.init_ui()
 
+        self._root().config(menu=MenuBar(self.root))
         self.root.mainloop()
 
     def init_ui(self):
@@ -173,9 +178,10 @@ class GUI(Frame):
             print(self.tags)
             self.tags.remove(tag_deleted)
             print(self.tags)
-            self.lbx_tags.delete(0, self.lbx_paths.size())
+            self.lbx_tags.delete(0, self.lbx_tags.size())
 
             for tag in self.tags:
+                print("Inserted " + tag)
                 self.lbx_tags.insert(END, tag)
 
             if self.current_tag == tag_deleted:
@@ -209,6 +215,11 @@ class GUI(Frame):
 
     def get_paths_lbx_dict(self, paths):
         rel_paths = {}
+        if not Settings.SHOW_ABSOLUTE_PATH:
+            for path in paths:
+                rel_paths[path] = path
+            return rel_paths
+
         for path in paths:
             rel_path = path[0].split('/')
             rel_path.reverse()
@@ -221,7 +232,7 @@ class GUI(Frame):
                 abs_path_2 = path[0].split('/')
                 abs_path_2.reverse()
 
-                rel_path_1 = []
+                rel_path_1 = []     # rel_path_1 = rel_path_2 = [] causes problems...
                 rel_path_2 = []
 
                 if len(abs_path_1) < len(abs_path_2):
