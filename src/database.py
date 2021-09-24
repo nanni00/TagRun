@@ -1,7 +1,5 @@
 import os
-import sqlite3
-from sqlite3 import Error
-
+from sqlite3 import Error, connect
 
 # todo replace raw sqlite with sqlalchemy
 
@@ -15,7 +13,7 @@ class DbManager:
 
     def create_connection(self, path):
         try:
-            self.connection = sqlite3.connect(path)
+            self.connection = connect(path)
 
             # enable the foreign key constraints
             self.connection.execute("PRAGMA foreign_keys = ON;")
@@ -52,12 +50,6 @@ class DbManagerTag:
         self.root_dir = path_dict['root_dir']
         self.db_dir = path_dict['db_dir']
         self.db_file_sqlite = path_dict['db_file_sqlite']
-
-        if not os.path.isdir(self.root_dir):
-            os.mkdir(self.root_dir)
-
-        if not os.path.isdir(self.db_dir):
-            os.mkdir(self.db_dir)
 
         if not os.path.isfile(self.db_file_sqlite):
             with open(self.db_file_sqlite, 'w') as f:

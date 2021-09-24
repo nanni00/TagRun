@@ -1,7 +1,7 @@
-import winreg as reg
-import os
-import platform
 import urllib.request
+import winreg as reg
+from os.path import exists, expanduser
+from platform import system
 from src.database import DbTag
 from src.gui import GUI
 
@@ -9,10 +9,10 @@ from src.gui import GUI
 class ProgramManager:
     def __init__(self):
         super(ProgramManager, self).__init__()
-        if platform.system() == 'Windows':
+        if system() == 'Windows':
             root_dir = "C:\\Program Files\\TagRun"
         else:
-            root_dir = os.path.expanduser("~")
+            root_dir = expanduser("~")
 
         self.path_dict = {'root_dir': root_dir,
                           'db_dir': root_dir + "\\database",
@@ -43,7 +43,7 @@ class ProgramManager:
         """
         :return: True if an update is available
         """
-        if not os.path.isfile(self.path_dict['version_file']):
+        if not exists(self.path_dict['version_file']):
             with open(self.path_dict['version_file'], 'w') as f:
                 f.write('1.0')
                 f.close()
@@ -56,8 +56,10 @@ class ProgramManager:
             current_version = float(vu1.read())
 
         return current_version < v
+    # check_update()
 
     def update(self):
-
         pass
+
+# class ProgramManager
 

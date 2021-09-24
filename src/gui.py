@@ -1,8 +1,7 @@
 import os
 import platform
 import subprocess
-import tkinter
-from tkinter import Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
+from tkinter import Button, Listbox, END, simpledialog as sd, messagebox as mbox, BOTH, filedialog as fd
 from tkinter.ttk import Frame
 
 
@@ -54,29 +53,29 @@ class GUI(Frame):
         button_width = 9
         buttons_row = 2
 
-        add_tag_button = tkinter.Button(self, text="Add Tag", padx=2, pady=5, fg="white", bg="green",
-                                        height=button_height, width=button_width,
-                                        command=self.on_add_tag)
+        add_tag_button = Button(self, text="Add Tag", padx=2, pady=5, fg="white", bg="green",
+                                height=button_height, width=button_width,
+                                command=self.on_add_tag)
         add_tag_button.grid(row=buttons_row, column=0)
 
-        add_file_path_button = tkinter.Button(self, text="Add File", padx=2, pady=5, fg="white", bg="green",
-                                              height=button_height, width=button_width,
-                                              command=self.on_add_file_path)
+        add_file_path_button = Button(self, text="Add File", padx=2, pady=5, fg="white", bg="green",
+                                      height=button_height, width=button_width,
+                                      command=self.on_add_file_path)
         add_file_path_button.grid(row=buttons_row, column=1)
 
-        add_directory_path_button = tkinter.Button(self, text="Add Directory", padx=2, pady=5, fg="white", bg="green",
-                                                   height=button_height, width=button_width,
-                                                   command=self.on_add_dir_path)
+        add_directory_path_button = Button(self, text="Add Directory", padx=2, pady=5, fg="white", bg="green",
+                                           height=button_height, width=button_width,
+                                           command=self.on_add_dir_path)
         add_directory_path_button.grid(row=buttons_row, column=2)
 
-        delete_tag_button = tkinter.Button(self, text="Delete Tag", padx=2, pady=5, fg="white", bg="green",
-                                           height=button_height, width=button_width,
-                                           command=self.on_delete_tag)
+        delete_tag_button = Button(self, text="Delete Tag", padx=2, pady=5, fg="white", bg="green",
+                                   height=button_height, width=button_width,
+                                   command=self.on_delete_tag)
         delete_tag_button.grid(row=buttons_row, column=4)
 
-        delete_path_button = tkinter.Button(self, text="Delete File\nor Directory", padx=2, pady=5, fg="white",
-                                            bg="green", height=button_height, width=button_width,
-                                            command=self.on_delete_path)
+        delete_path_button = Button(self, text="Delete File\nor Directory", padx=2, pady=5, fg="white",
+                                    bg="green", height=button_height, width=button_width,
+                                    command=self.on_delete_path)
         delete_path_button.grid(row=buttons_row, column=3)
 
         lbx_tags = Listbox(self)
@@ -208,7 +207,6 @@ class GUI(Frame):
         self.db.close_connection()
         self.root.destroy()
 
-    # todo improve relative paths building
     def get_paths_lbx_dict(self, paths):
         rel_paths = {}
         for path in paths:
@@ -217,10 +215,31 @@ class GUI(Frame):
             if not rel_paths.keys().__contains__(rel_path[0]):
                 rel_paths[rel_path[0]] = path
             else:
-                old_rel_path = rel_paths.get(rel_path[0])
-                old_rel_path = old_rel_path[0].split('/')
-                old_rel_path.reverse()
-                rel_paths[old_rel_path[1] + '/' + old_rel_path[0]] = rel_paths.pop(rel_path[0])
-                rel_paths[rel_path[1] + '/' + rel_path[0]] = path
+                abs_path_1 = rel_paths.get(rel_path[0])[0].split('/')       # get the list of single elements
+                abs_path_1.reverse()
 
+                abs_path_2 = path[0].split('/')
+                abs_path_2.reverse()
+
+                rel_path_1 = []
+                rel_path_2 = []
+
+                if len(abs_path_1) < len(abs_path_2):
+                    abs_short = len(abs_path_1)
+                else:
+                    abs_short = len(abs_path_2)
+
+                for i in range(abs_short):
+                    rel_path_1.insert(0, abs_path_1[i])
+                    rel_path_2.insert(0, abs_path_2[i])
+                    if abs_path_1[i] != abs_path_2[i]:
+                        break
+
+                rel_path_1 = '/'.join(rel_path_1)
+                rel_path_2 = '/'.join(rel_path_2)
+
+                rel_paths[rel_path_1] = rel_paths.get(rel_path[0])
+                rel_paths[rel_path_2] = path
+
+                del rel_paths[rel_path[0]]  # delete older relative file
         return rel_paths
