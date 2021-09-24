@@ -1,6 +1,7 @@
 import winreg as reg
 import os
 import platform
+import urllib.request
 from database import DbTag
 from gui import GUI
 
@@ -19,9 +20,6 @@ class ProgramManager:
                           'version_file': root_dir + "\\version.txt"}
 
         self.db = DbTag(self.path_dict)
-
-        with open(self.path_dict['version_file'], 'r') as v:
-            self.version = float(v.read())
 
         if self.check_update():
             self.update()
@@ -42,15 +40,24 @@ class ProgramManager:
     # remove_program()
 
     def check_update(self):
-        pass
+        """
+        :return: True if an update is available
+        """
+        if not os.path.isfile(self.path_dict['version_file']):
+            with open(self.path_dict['version_file'], 'w') as f:
+                f.write('1.0')
+                f.close()
+
+        url = "https://raw.githubusercontent.com/Giovanni-M00/TagRun/master/version"
+        with urllib.request.urlopen(url) as vu:
+            v = float(vu.read())
+            print(v)
+        with open(self.path_dict['version_file'], 'r') as vu1:
+            current_version = float(vu1.read())
+
+        return current_version < v
 
     def update(self):
+
         pass
 
-
-def main():
-    ProgramManager()
-
-
-if __name__ == "__main__":
-    main()
