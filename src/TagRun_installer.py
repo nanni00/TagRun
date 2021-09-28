@@ -33,7 +33,7 @@ class SetUp:
                 os.mkdir(directory)
 
     def download_exe(self):
-        exe_url = "https://github.com/Giovanni-M00/TagRun/blob/master/app/dist/app.exe?raw=true"
+        exe_url = "https://github.com/nanni00/TagRun/blob/master/app/dist/app.exe?raw=true"
         with urllib.request.urlopen(exe_url) as url:
             with open(self.exe, 'wb') as exe:
                 block_size = 8192
