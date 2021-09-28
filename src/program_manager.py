@@ -48,7 +48,7 @@ class ProgramManager:
                 f.write('1.0')
                 f.close()
 
-        url = "https://raw.githubusercontent.com/Giovanni-M00/TagRun/master/version"
+        url = "https://raw.githubusercontent.com/nanni00/TagRun/master/version"
         with urllib.request.urlopen(url) as vu:
             v = float(vu.read())
             print(v)
